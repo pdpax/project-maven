@@ -179,10 +179,10 @@
                 But if it's the target folder, how is a JAR read from it into the final build artifact?
                 Isn't target where the final build artifact is kept? Well...
                 The target directory is also used for storing intermediate files and dependencies
-                during the build process. In this case, target/lib is used as a staging area for
+                during the build process. In this case, target/dependencies is used as a staging area for
                 additional JAR files that we want to include in the final artifact.-->
                 <targetPath>lib/</targetPath>
-                <!--it means that the JAR files found in target/lib will be copied into
+                <!--it means that the JAR files found in target/dependencies will be copied into
                 the lib directory within the final artifact.-->
                 <includes>
                     <include>**/*.jar</include> <!--include all jar files anywhere in the directory-->
