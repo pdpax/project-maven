@@ -13,15 +13,76 @@
         <maven.compiler.target>18</maven.compiler.target>
     </properties>
 
+
     <dependencies>
 
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.12.0</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.openjfx/javafx-controls -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>18.0.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.codegym</groupId>
+            <artifactId>desktop-game-engine</artifactId>
+            <version>1.0</version>
+            <!--Run this line in terminal:
+            mvn install:install-file -Dfile="D:\CodingPractices\Java\CodeGymMaven\project-maven\lib\desktop-game-engine.jar" -DgroupId="com.codegym" -DartifactId=desktop-game-engine -Dversion="1.0" -Dpackaging=jar
+            -->
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.8.2</version>
+            <scope>test</scope>
+            <!--In Maven, the <scope> element within a <dependency> tag specifies the visibility
+            and lifecycle of a dependency. It determines how and when the dependency is used
+            within the project, including how it is included in the build and runtime classpaths.-->
+        </dependency>
+
     </dependencies>
+
+
+
 
     <build>
 
         <plugins>
+
+            <plugin>
+                <!--The Install Plugin is used during the install phase to add artifact(s) to
+                the local repository. The Install Plugin uses the information in the POM (groupId,
+                artifactId, version) to determine the proper location for the artifact within the
+                local repository.-->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>3.1.2</version>
+            </plugin>
+
             <!-- Usual compilation -->
             <plugin>
+                <!--The Compiler Plugin is used to compile the sources of your project. Since 3.0,
+                the default compiler is javax.tools.JavaCompiler (if you are using java 1.6) and is
+                used to compile Java sources.
+
+                //What about java's own compiler?!
+                1. Maven compiler can be configured. //can't java compiler? It can, but maven has more maven related features.
+                2. Handles the classpath to ensure all dependencies are included.
+                3. Different versions can be configured using the maven compiler.
+                    //I guess with java, you have to change the SDK in project structure?
+                4. By defining the compiler version and settings in pom.xml, you
+                    ensure that everyone on the team uses the same compiler configuration,
+                    reducing "works on my machine" issues.-->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.10.1</version>
@@ -32,6 +93,7 @@
 
             <!-- Run java-fx app over Maven -->
             <plugin>
+                <!--Maven plugin to run JavaFX 11+ applications-->
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.8</version>
@@ -39,7 +101,99 @@
                     <mainClass>com.codegym.games.racer.RacerGame</mainClass>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <!--The Surefire Plugin is used during the test phase of the build lifecycle to
+                execute the unit tests of an application.
+                It generates reports in txt and xml formats.-->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <excludes>
+                        <!--It does not run StrangeTest.java-->
+                        <exclude>**/StrangeTest.java</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+            <plugin><!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-dependency-plugin -->
+                <!--The dependency plugin provides the capability to manipulate artifacts.
+                It can copy and/or unpack artifacts from local or remote repositories to
+                a specified location.-->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.8.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/dependencies</outputDirectory>
+                            <includeScope>compile</includeScope>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-jar-plugin -->
+            <plugin>
+                <!--This plugin provides the capability to build jars.
+                To sign jars, use maven-jarsigner-plugin-->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.1</version>
+                <configuration>
+                    <archive>
+                        <!--archive is used to customize the contents and the metadata of the JAR file-->
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <mainClass>org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader</mainClass>
+                            <useUniqueVersions>false</useUniqueVersions>
+                            <!--If true, each build generates a JAR file with a unique name,
+                            which can help avoid overwriting previous builds and can make it
+                            easier to manage and identify different versions of the JAR.-->
+                        </manifest>
+                        <manifestEntries>
+                            <!--Just adding to the manifest-->
+                            <Rsrc-Main-Class>com.codegym.games.racer.RacerGame</Rsrc-Main-Class>
+                            <Class-Path>./</Class-Path>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+
+
         </plugins>
+
+        <resources>
+            <resource>
+                <!--This is for including JAR files from the directory in
+                the final build artifact.-->
+                <directory>${project.build.directory}/dependencies</directory>
+                <!--The ${project.build.directory} variable represents by default the target folder.
+                But if it's the target folder, how is a JAR read from it into the final build artifact?
+                Isn't target where the final build artifact is kept? Well...
+                The target directory is also used for storing intermediate files and dependencies
+                during the build process. In this case, target/lib is used as a staging area for
+                additional JAR files that we want to include in the final artifact.-->
+                <targetPath>lib/</targetPath>
+                <!--it means that the JAR files found in target/lib will be copied into
+                the lib directory within the final artifact.-->
+                <includes>
+                    <include>**/*.jar</include> <!--include all jar files anywhere in the directory-->
+                </includes>
+                <!--There will be no lib in the target. But there will be a lib in
+                the main directory of the final artifact, i.e. the JAR file.-->
+            </resource>
+        </resources>
+
     </build>
+
+    <!--To Run: "C:\Program Files\Java\jdk-20\bin\java.exe" -jar "D:\CodingPractices\Java\CodeGymMaven\project-maven\target\project-maven-1.0.jar"-->
 
 </project>
